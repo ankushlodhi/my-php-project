@@ -1,0 +1,25 @@
+- hosts: staging
+  become: yes
+  tasks:
+
+    - name: Update server packages
+      apt:
+        update_cache: yes
+
+    - name: Install PHP
+      apt:
+        name: php
+        state: present
+
+    - name: Install MySQL Server
+      apt:
+        name: mysql-server
+        state: present
+
+    - name: Copy project files to /var/www/html
+      copy:
+        src: ../
+        dest: /var/www/html/
+        owner: www-data
+        group: www-data
+        mode: 0755
