@@ -21,14 +21,14 @@
       debconf:
         name: mysql-server
         question: "mysql-server/root_password"
-        value: "{{ MYSQL_ROOT_PASSWORD }}"
+        value: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
         vtype: "password"
 
     - name: Confirm MySQL root password
       debconf:
         name: mysql-server
         question: "mysql-server/root_password_again"
-        value: "{{ MYSQL_ROOT_PASSWORD }}"
+        value: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
         vtype: "password"
 
     - name: Install MySQL Server
@@ -42,7 +42,7 @@
         login_password: ""
         name: root
         host_all: yes
-        password: "{{ MYSQL_ROOT_PASSWORD }}"
+        password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
         check_implicit_admin: yes
 
 
