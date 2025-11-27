@@ -70,21 +70,11 @@
         name: phpmyadmin
         state: present
 
-    - name: Enable phpMyAdmin in Apache
-      file:
-        src: /etc/phpmyadmin/apache.conf
-        dest: /etc/apache2/conf-enabled/phpmyadmin.conf
-        state: link
-      when: ansible_facts['pkg_mgr'] == 'apt' and
-            ansible.builtin.stat(path='/etc/phpmyadmin/apache.conf').stat.exists
-
-    # 9️⃣ Restart Apache
     - name: Restart Apache
       systemd:
         name: apache2
         state: restarted
 
-    # 🔟 Deploy project
     - name: Sync project to server
       synchronize:
         src: "{{ playbook_dir }}/../"
