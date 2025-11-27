@@ -1,6 +1,7 @@
 - hosts: staging
   become: yes
   vars:
+    ansible_python_interpreter: /usr/bin/python3
     mysql_root_password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
     phpmyadmin_app_password: "{{ lookup('env','PHPMYADMIN_APP_PASSWORD') }}"
 
