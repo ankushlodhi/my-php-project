@@ -49,9 +49,9 @@
         vtype: "{{ item.vtype }}"
       loop:
         - { question: "phpmyadmin/dbconfig-install", value: "true", vtype: "boolean" }
-        - { question: "phpmyadmin/app-password-confirm", value: "{{ PHPMYADMIN_APP_PASSWORD }}", vtype: "password" }
-        - { question: "phpmyadmin/mysql/admin-pass", value: "{{ MYSQL_ROOT_PASSWORD }}", vtype: "password" }
-        - { question: "phpmyadmin/mysql/app-pass", value: "{{ PHPMYADMIN_APP_PASSWORD }}", vtype: "password" }
+        - { question: "phpmyadmin/app-password-confirm", value: "{{ lookup('env','PHPMYADMIN_APP_PASSWORD') }}", vtype: "password" }
+        - { question: "phpmyadmin/mysql/admin-pass", value: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}", vtype: "password" }
+        - { question: "phpmyadmin/mysql/app-pass", value: "{{ lookup('env','PHPMYADMIN_APP_PASSWORD') }}", vtype: "password" }
         - { question: "phpmyadmin/reconfigure-webserver", value: "apache2", vtype: "string" }
 
     - name: Install phpMyAdmin package
