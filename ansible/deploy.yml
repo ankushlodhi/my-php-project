@@ -70,11 +70,6 @@
         name: phpmyadmin
         state: present
 
-    - name: Restart Apache
-      systemd:
-        name: apache2
-        state: restarted
-
     - name: Sync project to server
       synchronize:
         src: "{{ playbook_dir }}/../"
