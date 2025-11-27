@@ -27,4 +27,6 @@ jobs:
       - name: Run Ansible Playbook
         env:
           ANSIBLE_HOST_KEY_CHECKING: "False"
-        run: ansible-playbook -i ansible/hosts ansible/deploy.yml --private-key ansible_key.pem
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          PHPMYADMIN_APP_PASSWORD: ${{ secrets.PHPMYADMIN_APP_PASSWORD }}
+        run: ansible-playbook -i ansible/hosts ansible/deploy.yml --private-key ansible_key.pem --check --diff

@@ -6,14 +6,62 @@
       apt:
         update_cache: yes
 
+    - name: Install Apache
+      apt:
+        name: apache2
+        state: present
+
+
     - name: Install PHP
       apt:
         name: php
         state: present
 
+    - name: Set MySQL root password before installation
+      debconf:
+        name: mysql-server
+        question: "mysql-server/root_password"
+        value: "{{ MYSQL_ROOT_PASSWORD }}"
+        vtype: "password"
+
+    - name: Confirm MySQL root password
+      debconf:
+        name: mysql-server
+        question: "mysql-server/root_password_again"
+        value: "{{ MYSQL_ROOT_PASSWORD }}"
+        vtype: "password"
+
     - name: Install MySQL Server
       apt:
         name: mysql-server
+        state: present
+        
+    - name: Ensure MySQL root password is set
+      mysql_user:
+        login_user: root
+        login_password: ""
+        name: root
+        host_all: yes
+        password: "{{ MYSQL_ROOT_PASSWORD }}"
+        check_implicit_admin: yes
+
+
+    - name: Install phpMyAdmin non-interactively
+      debconf:
+        name: phpmyadmin
+        question: "{{ item.question }}"
+        value: "{{ item.value }}"
+        vtype: "{{ item.vtype }}"
+      loop:
+        - { question: "phpmyadmin/dbconfig-install", value: "true", vtype: "boolean" }
+        - { question: "phpmyadmin/app-password-confirm", value: "{{ PHPMYADMIN_APP_PASSWORD }}", vtype: "password" }
+        - { question: "phpmyadmin/mysql/admin-pass", value: "{{ MYSQL_ROOT_PASSWORD }}", vtype: "password" }
+        - { question: "phpmyadmin/mysql/app-pass", value: "{{ PHPMYADMIN_APP_PASSWORD }}", vtype: "password" }
+        - { question: "phpmyadmin/reconfigure-webserver", value: "apache2", vtype: "string" }
+
+    - name: Install phpMyAdmin package
+      apt:
+        name: phpmyadmin
         state: present
 
     - name: Sync project to server
