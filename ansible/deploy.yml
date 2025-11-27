@@ -16,10 +16,12 @@
         name: mysql-server
         state: present
 
-    - name: Copy project files to /var/www/html
-      copy:
-        src: ../
+    - name: Sync project to server
+      synchronize:
+        src: "{{ playbook_dir }}/../"
         dest: /var/www/html/
-        owner: www-data
-        group: www-data
-        mode: 0755
+        delete: yes
+        rsync_opts:
+          - "--exclude=.git"
+          - "--exclude=ansible"
+          - "--exclude=.github"
