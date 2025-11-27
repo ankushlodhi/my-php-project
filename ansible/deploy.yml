@@ -29,12 +29,7 @@
       apt:
         name: python3-pymysql
         state: present
-    # ✅ Install Python MySQL module first
-    - name: Install MySQL client for Python 3
-      pip:
-        name: PyMySQL
-        executable: pip3
-        
+
     #  Preseed MySQL root password (first install only)
     - name: Set MySQL root password before installation
       debconf:
@@ -55,17 +50,6 @@
       apt:
         name: mysql-server
         state: present
-
-    #  Ensure root password is set (idempotent)
-    - name: Set MySQL root password even if already installed
-      mysql_user:
-        login_user: root
-        login_password: ""
-        name: root
-        host_all: true
-        password: "{{ mysql_root_password }}"
-        plugin: mysql_native_password
-        check_implicit_admin: true
 
     - name: Flush MySQL privileges
       mysql_query:
