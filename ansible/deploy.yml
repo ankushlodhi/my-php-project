@@ -29,7 +29,12 @@
       apt:
         name: python3-pymysql
         state: present
-
+    # ✅ Install Python MySQL module first
+    - name: Install MySQL client for Python 3
+      pip:
+        name: PyMySQL
+        executable: pip3
+        
     #  Preseed MySQL root password (first install only)
     - name: Set MySQL root password before installation
       debconf:
