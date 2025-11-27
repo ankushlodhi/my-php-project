@@ -25,5 +25,6 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
 
       - name: Run Ansible Playbook
-        run: |
-          ansible-playbook -i ansible/hosts ansible/deploy.yml
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: "False"
+        run: ansible-playbook -i ansible/hosts ansible/deploy.yml --private-key ansible_key.pem
