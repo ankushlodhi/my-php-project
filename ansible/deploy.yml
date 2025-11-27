@@ -35,6 +35,11 @@
       apt:
         name: mysql-server
         state: present
+
+    - name: Install Python MySQL module for Ansible
+      apt:
+        name: python3-pymysql
+        state: present
         
     - name: Ensure MySQL root password is set
       mysql_user:
