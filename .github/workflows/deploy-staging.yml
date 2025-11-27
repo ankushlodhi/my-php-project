@@ -13,10 +13,8 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Install Ansible
-        run: |
-          sudo apt update
-          sudo apt install -y ansible
+      - name: Setup Ansible
+        uses: ansible/setup-ansible@v2
 
       - name: Add SSH Key
         run: |

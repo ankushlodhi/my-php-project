@@ -10,13 +10,19 @@
       apt:
         name: apache2
         state: present
-
-
+        
     - name: Install PHP
       apt:
         name: php
         state: present
 
+    # Ensure pymysql installed BEFORE mysql_user & mysql_query
+    - name: Install Python MySQL module for Ansible
+      apt:
+        name: python3-pymysql
+        state: present
+
+    # Pre-seed MySQL password only useful on first install
     - name: Set MySQL root password before installation
       debconf:
         name: mysql-server
@@ -36,12 +42,26 @@
         name: mysql-server
         state: present
 
-    - name: Install Python MySQL module for Ansible
-      apt:
-        name: python3-pymysql
-        state: present
-        
-    - name: Install phpMyAdmin non-interactively
+    # Fix for existing MySQL installation
+    - name: Set MySQL root password even if MySQL is already installed
+      mysql_user:
+        login_user: root
+        login_password: ""
+        name: root
+        host_all: true
+        password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+        plugin: mysql_native_password
+        check_implicit_admin: true
+
+    - name: Flush MySQL privileges
+      mysql_query:
+        query: "FLUSH PRIVILEGES;"
+        login_user: root
+        login_password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+        check_implicit_admin: true
+
+    # phpMyAdmin installation
+    - name: Preseed phpMyAdmin
       debconf:
         name: phpmyadmin
         question: "{{ item.question }}"
@@ -58,6 +78,18 @@
       apt:
         name: phpmyadmin
         state: present
+
+    # Apache config symlink (important)
+    - name: Enable phpMyAdmin in Apache
+      file:
+        src: /etc/phpmyadmin/apache.conf
+        dest: /etc/apache2/conf-enabled/phpmyadmin.conf
+        state: link
+
+    - name: Restart Apache
+      systemd:
+        name: apache2
+        state: restarted
 
     - name: Sync project to server
       synchronize:
