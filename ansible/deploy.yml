@@ -51,13 +51,6 @@
         name: mysql-server
         state: present
 
-    - name: Flush MySQL privileges
-      mysql_query:
-        query: "FLUSH PRIVILEGES;"
-        login_user: root
-        login_password: "{{ mysql_root_password }}"
-        check_implicit_admin: true
-
     #  PhpMyAdmin installation
     - name: Preseed phpMyAdmin
       debconf:
