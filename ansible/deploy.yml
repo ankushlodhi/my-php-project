@@ -1,55 +1,63 @@
 - hosts: staging
   become: yes
-  tasks:
+  vars:
+    mysql_root_password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+    phpmyadmin_app_password: "{{ lookup('env','PHPMYADMIN_APP_PASSWORD') }}"
 
+  tasks:
+    #  Update server packages
     - name: Update server packages
       apt:
         update_cache: yes
+        upgrade: yes
 
+    #  Install Apache
     - name: Install Apache
       apt:
         name: apache2
         state: present
-        
+
+    #  Install PHP
     - name: Install PHP
       apt:
         name: php
         state: present
 
-    # Ensure pymysql installed BEFORE mysql_user & mysql_query
-    - name: Install Python MySQL module for Ansible
+    #  Install Python MySQL module for Ansible
+    - name: Install Python MySQL module
       apt:
         name: python3-pymysql
         state: present
 
-    # Pre-seed MySQL password only useful on first install
+    #  Preseed MySQL root password (first install only)
     - name: Set MySQL root password before installation
       debconf:
         name: mysql-server
         question: "mysql-server/root_password"
-        value: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+        value: "{{ mysql_root_password }}"
         vtype: "password"
 
     - name: Confirm MySQL root password
       debconf:
         name: mysql-server
         question: "mysql-server/root_password_again"
-        value: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+        value: "{{ mysql_root_password }}"
         vtype: "password"
 
+    #  Install MySQL Server
     - name: Install MySQL Server
       apt:
         name: mysql-server
         state: present
 
-    # Fix for existing MySQL installation
-    - name: Set MySQL root password even if MySQL is already installed
+    #  Ensure root password is set (idempotent)
+    - name: Set MySQL root password even if already installed
       mysql_user:
         login_user: root
         login_password: ""
         name: root
         host_all: true
-        password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+        password: "{{ mysql_root_password }}"
         plugin: mysql_native_password
         check_implicit_admin: true
 
@@ -57,10 +65,10 @@
       mysql_query:
         query: "FLUSH PRIVILEGES;"
         login_user: root
-        login_password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
+        login_password: "{{ mysql_root_password }}"
         check_implicit_admin: true
 
-    # phpMyAdmin installation
+    #  PhpMyAdmin installation
     - name: Preseed phpMyAdmin
       debconf:
         name: phpmyadmin
@@ -69,9 +77,9 @@
         vtype: "{{ item.vtype }}"
       loop:
         - { question: "phpmyadmin/dbconfig-install", value: "true", vtype: "boolean" }
-        - { question: "phpmyadmin/app-password-confirm", value: "{{ lookup('env','PHPMYADMIN_APP_PASSWORD') }}", vtype: "password" }
-        - { question: "phpmyadmin/mysql/admin-pass", value: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}", vtype: "password" }
-        - { question: "phpmyadmin/mysql/app-pass", value: "{{ lookup('env','PHPMYADMIN_APP_PASSWORD') }}", vtype: "password" }
+        - { question: "phpmyadmin/app-password-confirm", value: "{{ phpmyadmin_app_password }}", vtype: "password" }
+        - { question: "phpmyadmin/mysql/admin-pass", value: "{{ mysql_root_password }}", vtype: "password" }
+        - { question: "phpmyadmin/mysql/app-pass", value: "{{ phpmyadmin_app_password }}", vtype: "password" }
         - { question: "phpmyadmin/reconfigure-webserver", value: "apache2", vtype: "string" }
 
     - name: Install phpMyAdmin package
@@ -79,18 +87,19 @@
         name: phpmyadmin
         state: present
 
-    # Apache config symlink (important)
     - name: Enable phpMyAdmin in Apache
       file:
         src: /etc/phpmyadmin/apache.conf
         dest: /etc/apache2/conf-enabled/phpmyadmin.conf
         state: link
 
+    # 9️⃣ Restart Apache
     - name: Restart Apache
       systemd:
         name: apache2
         state: restarted
 
+    # 🔟 Deploy project
     - name: Sync project to server
       synchronize:
         src: "{{ playbook_dir }}/../"
