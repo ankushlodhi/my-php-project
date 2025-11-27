@@ -1,7 +1,5 @@
 - hosts: staging
   become: yes
-  vars:
-    ansible_python_interpreter: /usr/bin/python3
   tasks:
 
     - name: Update server packages
@@ -43,16 +41,6 @@
         name: python3-pymysql
         state: present
         
-    - name: Ensure MySQL root password is set
-      mysql_user:
-        login_user: root
-        login_password: ""
-        name: root
-        host_all: yes
-        password: "{{ lookup('env','MYSQL_ROOT_PASSWORD') }}"
-        check_implicit_admin: yes
-
-
     - name: Install phpMyAdmin non-interactively
       debconf:
         name: phpmyadmin
